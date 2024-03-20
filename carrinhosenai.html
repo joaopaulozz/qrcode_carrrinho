@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Scanner de QR Code</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #video-container {
+      margin: 20px auto;
+      max-width: 80%;
+    }
+    #result {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Scanner de QR Code</h1>
+  <div id="video-container">
+    <video id="video" width="100%" height="auto" playsinline></video>
+  </div>
+  <div id="result"></div>
+
+  <script src="https://rawgit.com/sitepoint-editors/jsqrcode/master/src/qr_packed.js"></script>
+  <script>
+    // Capturar elementos da DOM
+    const video = document.getElementById('video');
+    const resultDiv = document.getElementById('result');
+
+    // Verificar se o navegador suporta getUserMedia
+    function hasGetUserMedia() {
+      return !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+    }
+
+    // Função para iniciar a câmera
+    function startCamera() {
+      if (hasGetUserMedia()) {
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+          .then(function(stream) {
+            video.srcObject = stream;
+            video.setAttribute('playsinline', true);
+            video.play();
+            requestAnimationFrame(tick);
+          })
+          .catch(function(err) {
+            console.log('Erro ao acessar a câmera: ', err);
+          });
+      } else {
+        alert('Desculpe, seu navegador não suporta getUserMedia.');
+      }
+    }
+
+    // Iniciar a câmera ao carregar a página
+    document.addEventListener('DOMContentLoaded', startCamera);
+
+    // Função para capturar QR code
+    function tick() {
+      try {
+        qrcode.decode();
+      } catch (e) {
+        setTimeout(tick, 200);
+      }
+    }
+
+    // Ao decodificar um QR code
+    qrcode.callback = function(result) {
+      resultDiv.innerHTML = 'Resultado: ' + result;
+
+      // Verificar se o resultado é um número
+      if (!isNaN(result)) {
+        const numeroEsperado = 12345; // Defina o número esperado aqui
+        if (parseInt(result) === numeroEsperado) {
+          resultDiv.innerHTML += '<br>Os números são iguais!';
+        } else {
+          resultDiv.innerHTML += '<br>Os números são diferentes!';
+        }
+      } else {
+        resultDiv.innerHTML += '<br>Não é um número válido!';
+      }
+    };
+  </script>
+</body>
+</html>
